@@ -19,7 +19,7 @@ class RestClient(object):
 
         :param str url: URL of Broker node in the Elasticsearch cluster
         :param str endpoint: Endpoint that Broker listens for queries on
-        :param str auth: HTTP Basic Authentication info as a tuple (username, password)
+        :param tuple auth: HTTP Basic Authentication info as a tuple (username, password)
         """
         self.url = url
         self.endpoint = endpoint
@@ -49,9 +49,14 @@ class RestClient(object):
             if params is not None:
                 url = '{0}?{1}'.format(url, urllib.parse.urlencode(params))
 
-            req = urllib.request.Request(url=url)
+            headers = {}
             if self.auth is not None:
-                req = self.__handleBasicAuth(req)
+                auth_header_val = self.__getBasicAuthHeader()
+                headers["Authorization"] = auth_header_val
+
+            req = urllib.request.Request(url=url,
+                                         headers=headers)
+
             res = urllib.request.urlopen(req)
             data = res.read().decode("utf-8")
             res.close()
@@ -88,10 +93,14 @@ class RestClient(object):
             if params is not None:
                 url = '{0}?{1}'.format(url, urllib.parse.urlencode(params))
 
-            req = urllib.request.Request(url=url, data=json.dumps(data).encode('utf-8'),
-                                         headers={'Content-Type': 'application/json'})
+            headers = {'Content-Type': 'application/json'}
             if self.auth is not None:
-                req = self.__handleBasicAuth(req)
+                auth_header_val = self.__getBasicAuthHeader()
+                headers["Authorization"] = auth_header_val
+
+            req = urllib.request.Request(url=url, data=json.dumps(data).encode('utf-8'),
+                                         headers=headers)
+
             res = urllib.request.urlopen(req)
             data = res.read().decode("utf-8")
             res.close()
@@ -110,8 +119,7 @@ class RestClient(object):
         else:
             return json.loads(data)
 
-    def __handleBasicAuth(self, req):
+    def __getBasicAuthHeader(self):
         username, password = self.auth
         base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-        req.add_header("Authorization", "Basic %s" % base64string)
-        return req
+        return "Basic %s" % base64string

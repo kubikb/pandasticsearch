@@ -89,7 +89,7 @@ class DataFrame(object):
         :param str index: The name of the index
         :param str doc_type: The type of the document
         :param str compat: The compatible ES version (an integer number)
-        :param str auth: HTTP Basic Authentication info as a tuple (username, password)
+        :param tuple auth: HTTP Basic Authentication info as a tuple (username, password)
         :return: DataFrame object for accessing
         :rtype: DataFrame
 
