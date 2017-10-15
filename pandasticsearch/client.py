@@ -121,5 +121,18 @@ class RestClient(object):
 
     def __getBasicAuthHeader(self):
         username, password = self.auth
-        base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+        auth_token_val = '%s:%s' % (username, password)
+        base64string = self.__base64ify(auth_token_val)
         return "Basic %s" % base64string
+
+    def __base64ify(self, bytes_or_str):
+        if sys.version_info[0] >= 3 and isinstance(bytes_or_str, str):
+            input_bytes = bytes_or_str.encode('utf8')
+        else:
+            input_bytes = bytes_or_str
+
+        output_bytes = base64.urlsafe_b64encode(input_bytes)
+        if sys.version_info[0] >= 3:
+            return output_bytes.decode('ascii')
+        else:
+            return output_bytes
