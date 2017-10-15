@@ -89,6 +89,7 @@ class DataFrame(object):
         :param str index: The name of the index
         :param str doc_type: The type of the document
         :param str compat: The compatible ES version (an integer number)
+        :param str auth: HTTP Basic Authentication info as a tuple (username, password)
         :return: DataFrame object for accessing
         :rtype: DataFrame
 
@@ -100,6 +101,7 @@ class DataFrame(object):
         index = kwargs.get('index', None)
         url = kwargs.get('url', 'http://localhost:9200')
         compat = kwargs.get('compat', 2)
+        auth = kwargs.get('auth', None)
 
         if index is None:
             raise ValueError('Index name must be specified')
@@ -115,7 +117,7 @@ class DataFrame(object):
             endpoint = index + '/_search'
         else:
             endpoint = index + '/' + doc_type + '/_search'
-        return DataFrame(client=RestClient(url, endpoint),
+        return DataFrame(client=RestClient(url, endpoint, auth),
                          mapping=mapping, index=index, doc_type=doc_type, compat=compat)
 
     def __getattr__(self, name):

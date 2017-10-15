@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 
+import base64
 import json
 import sys
 from six.moves import urllib
@@ -12,15 +13,17 @@ class RestClient(object):
     RestClient talks to Elasticsearch cluster through native RESTful API.
     """
 
-    def __init__(self, url, endpoint=''):
+    def __init__(self, url, endpoint='', auth=None):
         """
         Initialize the RESTful from the keyword arguments.
 
         :param str url: URL of Broker node in the Elasticsearch cluster
         :param str endpoint: Endpoint that Broker listens for queries on
+        :param str auth: HTTP Basic Authentication info as a tuple (username, password)
         """
         self.url = url
         self.endpoint = endpoint
+        self.auth = auth
 
     def _prepare_url(self):
         if self.url.endswith('/'):
@@ -47,6 +50,8 @@ class RestClient(object):
                 url = '{0}?{1}'.format(url, urllib.parse.urlencode(params))
 
             req = urllib.request.Request(url=url)
+            if self.auth is not None:
+                req = self.__handleBasicAuth(req)
             res = urllib.request.urlopen(req)
             data = res.read().decode("utf-8")
             res.close()
@@ -85,6 +90,8 @@ class RestClient(object):
 
             req = urllib.request.Request(url=url, data=json.dumps(data).encode('utf-8'),
                                          headers={'Content-Type': 'application/json'})
+            if self.auth is not None:
+                req = self.__handleBasicAuth(req)
             res = urllib.request.urlopen(req)
             data = res.read().decode("utf-8")
             res.close()
@@ -102,3 +109,9 @@ class RestClient(object):
             raise ServerDefinedException(reason)
         else:
             return json.loads(data)
+
+    def __handleBasicAuth(self, req):
+        username, password = self.auth
+        base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+        req.add_header("Authorization", "Basic %s" % base64string)
+        return req
