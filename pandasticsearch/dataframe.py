@@ -111,7 +111,7 @@ class DataFrame(object):
         else:
             mapping_endpoint = index + '/_mapping/' + doc_type
 
-        mapping = RestClient(url, mapping_endpoint).get()
+        mapping = RestClient(url, mapping_endpoint, auth).get()
 
         if doc_type is None:
             endpoint = index + '/_search'
