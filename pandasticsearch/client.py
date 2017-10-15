@@ -13,17 +13,17 @@ class RestClient(object):
     RestClient talks to Elasticsearch cluster through native RESTful API.
     """
 
-    def __init__(self, url, endpoint='', auth=None):
+    def __init__(self, url, endpoint='', headers=None):
         """
         Initialize the RESTful from the keyword arguments.
 
         :param str url: URL of Broker node in the Elasticsearch cluster
         :param str endpoint: Endpoint that Broker listens for queries on
-        :param tuple auth: HTTP Basic Authentication info as a tuple (username, password)
+        :param dict headers: Extra headers to pass
         """
         self.url = url
         self.endpoint = endpoint
-        self.auth = auth
+        self.headers = headers if headers is not None else {}
 
     def _prepare_url(self):
         if self.url.endswith('/'):
@@ -49,11 +49,7 @@ class RestClient(object):
             if params is not None:
                 url = '{0}?{1}'.format(url, urllib.parse.urlencode(params))
 
-            headers = {}
-            if self.auth is not None:
-                auth_header_val = self.__getBasicAuthHeader()
-                headers["Authorization"] = auth_header_val
-
+            headers = self.headers
             req = urllib.request.Request(url=url,
                                          headers=headers)
 
@@ -93,10 +89,8 @@ class RestClient(object):
             if params is not None:
                 url = '{0}?{1}'.format(url, urllib.parse.urlencode(params))
 
-            headers = {'Content-Type': 'application/json'}
-            if self.auth is not None:
-                auth_header_val = self.__getBasicAuthHeader()
-                headers["Authorization"] = auth_header_val
+            headers = self.headers
+            headers['Content-Type'] = 'application/json'
 
             req = urllib.request.Request(url=url, data=json.dumps(data).encode('utf-8'),
                                          headers=headers)
@@ -119,20 +113,3 @@ class RestClient(object):
         else:
             return json.loads(data)
 
-    def __getBasicAuthHeader(self):
-        username, password = self.auth
-        auth_token_val = '%s:%s' % (username, password)
-        base64string = self.__base64ify(auth_token_val)
-        return "Basic %s" % base64string
-
-    def __base64ify(self, bytes_or_str):
-        if sys.version_info[0] >= 3 and isinstance(bytes_or_str, str):
-            input_bytes = bytes_or_str.encode('utf8')
-        else:
-            input_bytes = bytes_or_str
-
-        output_bytes = base64.urlsafe_b64encode(input_bytes)
-        if sys.version_info[0] >= 3:
-            return output_bytes.decode('ascii')
-        else:
-            return output_bytes

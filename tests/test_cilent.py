@@ -23,8 +23,8 @@ class TestClients(unittest.TestCase):
         self.assertEqual(json, {"hits": {"hits": [{"_source": {}}]}})
 
     @patch('pandasticsearch.client.urllib.request.urlopen')
-    def test_basic_auth_post(self, mock_urlopen):
-        client = RestClient("http://localhost:9200", auth=("IAm", "Testing"))
+    def test_headers_post(self, mock_urlopen):
+        client = RestClient("http://localhost:9200", headers={'Authorization': 'Basic SUFtOlRlc3Rpbmc='})
         response = Mock()
         response.read.return_value = """{"hits" : {"hits": [{"_source": {}}] }}""".encode("utf-8")
         mock_urlopen.return_value = response
@@ -35,8 +35,8 @@ class TestClients(unittest.TestCase):
         self.assertEqual(expected_headers, mock_request_headers)
 
     @patch('pandasticsearch.client.urllib.request.urlopen')
-    def test_basic_auth_get(self, mock_urlopen):
-        client = RestClient("http://localhost:9200", auth=("IAm", "Testing"))
+    def test_headers_get(self, mock_urlopen):
+        client = RestClient("http://localhost:9200", headers={'Authorization': 'Basic SUFtOlRlc3Rpbmc='})
         response = Mock()
         response.read.return_value = """{"hits" : {"hits": [{"_source": {}}] }}""".encode("utf-8")
         mock_urlopen.return_value = response
